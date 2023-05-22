@@ -13,20 +13,34 @@ from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, Conv
 from tensorflow.keras.models import Model, Sequential, load_model
 
 
-#Trouver tous les chemins vers les fichiers qui finissent par .png
-liste = glob.glob('./COVID-19_Radiography_Dataset/*/.png')
-print(liste)
-#Remplacer les \\ par /
-liste = list(map(lambda x : [x, x.split('/')[2]], liste))
+#Définition des repertoires des images et leur target associés
+train_dir = 'D:/documents/Documentos Joao/FORMATION DATATEST/PROJET COVID/archive/COVID-19_Radiography_Dataset'
+normal_imgs = [fn for fn in os.listdir(f'{train_dir}/Normal/images') if fn.endswith('.png')]
+covid_imgs = [fn for fn in os.listdir(f'{train_dir}/COVID/images') if fn.endswith('.png')]
+pneumonia_imgs = [fn for fn in os.listdir(f'{train_dir}/Viral Pneumonia/images') if fn.endswith('.png')]
+lung_opacity_imgs = [fn for fn in os.listdir(f'{train_dir}/Lung_Opacity/images') if fn.endswith('.png')]
+
+liste = []
+
+for fn in normal_imgs :
+    liste.append(f'{train_dir}/Normal/images/' + fn)
+for fn in covid_imgs :
+    liste.append(f'{train_dir}/COVID/images/' + fn)
+for fn in pneumonia_imgs :
+    liste.append(f'{train_dir}/Viral Pneumonia/images/' + fn)
+for fn in lung_opacity_imgs :
+    liste.append(f'{train_dir}/Lung_Opacity/images/' + fn)
+
+liste = list(map(lambda x : [x, x.split('/')[7]], liste))
 
 #Créer un DataFrame pandas
 df = pd.DataFrame(liste, columns = ['filepath', 'nameLabel'])
 df['label'] = df['nameLabel'].replace(df.nameLabel.unique(), [*range(len(df.nameLabel.unique()))])
-df.head()
+df.head(10)
 
 
 #Charger Exemple Image 
-filepath = df.filepath[0]
+filepath = df.filepath[5]
 
 im = tf.io.read_file(filepath)
 im = tf.image.decode_png(im, channels = 3)
@@ -44,8 +58,8 @@ X_train_path, X_test_path, y_train, y_test = train_test_split(df.filepath, df.la
 dataset_train = tf.data.Dataset.from_tensor_slices((X_train_path, y_train))
 dataset_train = dataset_train.map(lambda x,y : [load_image(x), y], num_parallel_calls = -1).batch(32)
 
-#dataset_test = tf.data.Dataset.from_tensor_slices((X_test_path, y_test))
-#dataset_test = dataset_test.map(lambda x,y : [load_image(x), y], num_parallel_calls= - 1).batch(32)
+dataset_test = tf.data.Dataset.from_tensor_slices((X_test_path, y_test))
+dataset_test = dataset_test.map(lambda x,y : [load_image(x), y], num_parallel_calls= - 1).batch(32)
 
 X_test = []
 
