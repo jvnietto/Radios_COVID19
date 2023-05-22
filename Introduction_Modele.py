@@ -19,7 +19,7 @@ from tensorflow.keras.models import Model, Sequential, load_model
 
 
 #Définition des repertoires des images et leur target associés
-train_dir = 'D:/documents/GitHub/Radios_COVID19/COVID-19_Radiography_Dataset'
+train_dir = 'D:/documents/Documentos Joao/FORMATION DATATEST/PROJET COVID/archive/COVID-19_Radiography_Dataset'
 normal_imgs = [fn for fn in os.listdir(f'{train_dir}/Normal/images') if fn.endswith('.png')]
 covid_imgs = [fn for fn in os.listdir(f'{train_dir}/COVID/images') if fn.endswith('.png')]
 pneumonia_imgs = [fn for fn in os.listdir(f'{train_dir}/Viral Pneumonia/images') if fn.endswith('.png')]
