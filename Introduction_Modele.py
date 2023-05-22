@@ -2,12 +2,15 @@ import pandas as pd
 import numpy as np 
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import glob
-from tqdm import tqdm
 
-from sklearn.model_selection import train_test_split
+import os
+
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+
+from tensorflow.keras.preprocessing import image
+
+from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, Conv2D, MaxPooling2D, BatchNormalization, LeakyReLU, Flatten
 from tensorflow.keras.models import Model, Sequential, load_model
@@ -89,13 +92,34 @@ model.summary()
 model.compile('adam', 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 
 #Entrainement du modèle
-training_history = model.fit(dataset_train, epochs = 5, validation_data = dataset_test)
+epochs = 10
+training_history = model.fit(dataset_train, epochs = epochs, validation_data = dataset_test)
 
 train_acc_lenet = training_history.history['accuracy']
 val_acc_lenet = training_history.history['val_accuracy']
 
+plt.xlabel('Epochs')
+plt.ylabel('Val_Accuracy')
+
+plt.plot(np.arange(1,epochs+1,1),
+        val_acc_lenet,
+        color = 'green')
+
+plt.legend()
+plt.show()
+
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+
+plt.plot(np.arange(1,epochs+1,1),
+        train_acc_lenet,
+        color = 'blue')
+
+plt.legend()
+plt.show()
+
 #Evaluation du modèle
-y_prob = model.prediction(dataset_test, batch_size = 64)
+y_prob = model.predict(X_test, batch_size = 64)
 y_pred = tf.argmax(y_prob, axis = -1).numpy()
 
 print('Accuracy :', accuracy_score(y_test, y_pred))
@@ -113,4 +137,4 @@ for i, idx in enumerate(indices_random) :
     plt.imshow(tf.cast(X_test[idx], tf.int32))
     plt.xticks[]
     plt.yticks[]
-    plt.title('Pred class : {} \n Real Class : {}'.format(df.nameLabel.unique[y_pred[idx]], df.nameLabel.unique()[y_test.values[idx]]))
+    plt.title('Pred class : {} \n Real Class : {}'.format(df.nameLabel.unique()[y_pred[idx]], df.nameLabel.unique()[y_test.values[idx]]))
