@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 import os
 
+from tqdm import tqdm
+
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 
@@ -17,7 +19,7 @@ from tensorflow.keras.models import Model, Sequential, load_model
 
 
 #Définition des repertoires des images et leur target associés
-train_dir = 'D:/documents/Documentos Joao/FORMATION DATATEST/PROJET COVID/archive/COVID-19_Radiography_Dataset'
+train_dir = 'D:/documents/GitHub/Radios_COVID19/COVID-19_Radiography_Dataset'
 normal_imgs = [fn for fn in os.listdir(f'{train_dir}/Normal/images') if fn.endswith('.png')]
 covid_imgs = [fn for fn in os.listdir(f'{train_dir}/COVID/images') if fn.endswith('.png')]
 pneumonia_imgs = [fn for fn in os.listdir(f'{train_dir}/Viral Pneumonia/images') if fn.endswith('.png')]
@@ -46,7 +48,7 @@ df.head(10)
 filepath = df.filepath[5]
 
 im = tf.io.read_file(filepath)
-im = tf.image.decode_png(im, channels = 3)
+im = tf.image.decode_png(im, channels = 1)
 plt.imshow(im)
 
 
@@ -76,11 +78,10 @@ X_test = tf.concat(X_test, axis = 0)
 
 
 #Construire Architecture LeNet
-
 model = Sequential()
 model.add(Conv2D(filters = 30, kernel_size = (5,5), padding = 'valid', input_shape = (256,256,1), activation = 'relu')) 
 model.add(MaxPooling2D(pool_size = (2,2)))
-model.add(Conv2D(filters = 16, kernel_size = (3,3), padding = 'valid', input_shape = (256,256,1), activation = 'relu')) 
+model.add(Conv2D(filters = 16, kernel_size = (3,3), padding = 'valid', activation = 'relu')) 
 model.add(MaxPooling2D(pool_size = (2,2)))
 model.add(Flatten())
 model.add(Dropout(rate = 0.2))
@@ -95,31 +96,27 @@ model.compile('adam', 'sparse_categorical_crossentropy', metrics = ['accuracy'])
 epochs = 10
 training_history = model.fit(dataset_train, epochs = epochs, validation_data = dataset_test)
 
-train_acc_lenet = training_history.history['accuracy']
-val_acc_lenet = training_history.history['val_accuracy']
+# Courbes de perte et d'accuracy
+plt.figure(figsize = (16,5))
 
-plt.xlabel('Epochs')
-plt.ylabel('Val_Accuracy')
-
-plt.plot(np.arange(1,epochs+1,1),
-        val_acc_lenet,
-        color = 'green')
-
+plt.subplot(121)
+plt.plot(training_history.history["loss"], label = "Train")
+plt.plot(training_history.history["val_loss"], label = "Test")
 plt.legend()
-plt.show()
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.ylim(0,2)
 
+plt.subplot(122)
+plt.plot(training_history.history["accuracy"], label = "Train")
+plt.plot(training_history.history["val_accuracy"], label = "Test")
+plt.legend()
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
-
-plt.plot(np.arange(1,epochs+1,1),
-        train_acc_lenet,
-        color = 'blue')
-
-plt.legend()
 plt.show()
 
 #Evaluation du modèle
-y_prob = model.predict(X_test, batch_size = 64)
+y_prob = model.predict(dataset_test, batch_size = 32)
 y_pred = tf.argmax(y_prob, axis = -1).numpy()
 
 print('Accuracy :', accuracy_score(y_test, y_pred))
@@ -127,14 +124,12 @@ confusion_matrix(y_test, y_pred)
 
 
 #Prédiction du modèle
-
-indices_random = tf.random.uniform([3], 0, len(X_test), dtype = tf.int32)
+indices_random = tf.random.uniform([5], 0, len(X_test_path), dtype = tf.int32)
 
 plt.figure(figsize = (15,7))
 
 for i, idx in enumerate(indices_random) :
-    plt.subplot(1,3,i+1)
+    plt.subplot(1,5,i+1)
     plt.imshow(tf.cast(X_test[idx], tf.int32))
-    plt.xticks[]
-    plt.yticks[]
+    plt.axis('off')
     plt.title('Pred class : {} \n Real Class : {}'.format(df.nameLabel.unique()[y_pred[idx]], df.nameLabel.unique()[y_test.values[idx]]))
